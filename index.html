@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pure Jewelry - Joyería de Lujo</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes Profesionales: Playfair Display (Headers) y Poppins (Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Paleta: #047857 (Emerald Deep), #D9A95B (Ancient Gold), #FAFAFA (Background) */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #FAFAFA; /* Fondo muy suave, casi blanco */
+        }
+        .header-font {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Estilo para la transición del modal del carrito */
+        .cart-modal {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: translateX(100%); 
+            opacity: 0;
+            pointer-events: none;
+        }
+        .cart-modal.open {
+            opacity: 1;
+            transform: translateX(0); 
+            pointer-events: auto;
+        }
+        /* Estilo para los botones principales (Ancient Gold Accent) */
+        .gold-button {
+            background-color: #D9A95B; /* Ancient Gold */
+            color: white; 
+            border: 1px solid #D9A95B;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .gold-button:hover {
+            background-color: #FAFAFA;
+            color: #047857; /* Texto Esmeralda */
+            border-color: #047857;
+            box-shadow: 0 8px 10px rgba(217, 169, 91, 0.4);
+        }
+        .text-emerald-gold {
+            color: #047857; /* Texto principal en Esmeralda */
+        }
+        .text-gold {
+             color: #D9A95B; /* Precios y acentos en Oro */
+        }
+        .border-emerald-gold {
+            border-color: #047857;
+        }
+
+        /* Estilos de las Tarjetas de Pago (Para el Checkout) */
+        .payment-option-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            background-color: #FAFAFA;
+            border: 2px solid #E5E7EB;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 120px;
+        }
+        .payment-option-card:hover {
+            border-color: #D9A95B; /* Gold on hover */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+        }
+        .payment-option-card.selected {
+            border-color: #047857; /* Emerald Deep when selected */
+            background-color: #F0FFF0; /* Very light emerald background */
+            box-shadow: 0 4px 10px rgba(4, 120, 87, 0.2);
+            font-weight: bold;
+        }
+        .payment-option-card.selected .text-emerald-gold {
+            color: #047857;
+        }
+        
+        /* Estilos del Carrusel */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            height: 60vh; 
+        }
+        .carousel-images {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            width: 300%; /* 3 imágenes */
+            height: 100%; 
+        }
+        .carousel-slide {
+            width: 33.333%; /* Ajustado para 3 slides */
+            flex-shrink: 0;
+            height: 100%; 
+            background-size: cover; 
+            background-position: center; 
+        }
+        .carousel-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            padding: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            border-radius: 9999px; /* fully rounded */
+        }
+        .carousel-nav-btn:hover {
+            background-color: rgba(4, 120, 87, 0.8); /* Emerald Deep oscuro */
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .carousel-container {
+                height: 40vh; /* Un poco menos en móvil */
+            }
+            /* Asegurar que el modal del carrito no sea demasiado grande en móvil */
+            #cart-content {
+                max-width: 90vw;
+            }
+        }
+        
+        .description-expand {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            visibility: hidden;
+            transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in-out 0.1s, visibility 0s 0.5s;
+        }
+        .group:hover .description-expand {
+            max-height: 500px;
+            opacity: 1;
+            visibility: visible;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out 0.1s, visibility 0s 0s;
+        }
+        
+        /* Estilos del Modal de Checkout */
+        .checkout-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 60;
+            display: none; /* Oculto por defecto */
+            align-items: center;
+            justify-content: center;
+        }
+        .checkout-modal-content {
+            background-color: white;
+            border-radius: 1rem;
+            max-width: 90%;
+            width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+        .checkout-modal-overlay.open {
+            display: flex;
+        }
+        .checkout-modal-overlay.open .checkout-modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        /* Estilos de los pasos del checkout */
+        .checkout-step {
+            display: none;
+        }
+        .checkout-step.active {
+            display: block;
+        }
+
+        .step-indicator {
+            transition: all 0.3s;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            font-weight: bold;
+            color: #047857;
+            border: 2px solid #047857;
+            background-color: white;
+        }
+        .step-indicator.active {
+            color: white;
+            background-color: #047857;
+            border-color: #047857;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="min-h-screen">
+        <!-- Encabezado y Navbar Completa -->
+        <header class="sticky top-0 z-40 bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                
+                <!-- Logo -->
+                <a href="#" class="header-font text-3xl sm:text-4xl font-extrabold text-emerald-gold hover:text-gold transition duration-150">Pure Jewelry Co.</a>
+                
+                <!-- Menú Desktop -->
+                <nav class="hidden md:flex space-x-8 items-center font-semibold text-emerald-gold">
+                    <a href="#inicio" class="hover:text-gold transition duration-150">Inicio</a>
+                    <a href="#catalogo" class="hover:text-gold transition duration-150">Catálogo</a>
+                    <a href="#pagos" class="hover:text-gold transition duration-150">Formas de Pago</a>
+                    <a href="#reviews" class="hover:text-gold transition duration-150">Reseñas</a>
+                    <a href="#contacto" class="hover:text-gold transition duration-150">Contacto</a>
+                    <!-- Botón de Carrito Desktop -->
+                    <button id="cart-button-desktop" class="relative p-2 rounded-full text-emerald-gold border-2 border-gold hover:bg-gray-50 transition duration-150 ease-in-out shadow-sm" onclick="toggleCart()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D9A95B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="m2.05 2.05 2.58 2.58L5 6h16l-2 7H5"/></svg>
+                        <span id="cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">0</span>
+                    </button>
+                </nav>
+
+                <!-- Botón de Menú y Carrito Mobile -->
+                <div class="flex items-center md:hidden space-x-4">
+                    <button id="cart-button-mobile" class="relative p-2 rounded-full text-emerald-gold border-2 border-gold hover:bg-gray-50 transition duration-150 ease-in-out shadow-sm" onclick="toggleCart()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D9A95B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="m2.05 2.05 2.58 2.58L5 6h16l-2 7H5"/></svg>
+                        <span class="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full" id="cart-count-mobile">0</span>
+                    </button>
+                    <button id="menu-toggle" class="p-2 text-emerald-gold" onclick="toggleMobileMenu()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Menú Móvil Lateral (Off-canvas) -->
+        <nav id="mobile-menu" class="fixed top-0 right-0 h-full w-64 bg-white z-50 shadow-2xl md:hidden p-6">
+            <div class="flex justify-end mb-8">
+                <button class="text-emerald-gold hover:text-gold" onclick="toggleMobileMenu()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="flex flex-col space-y-4 font-semibold text-lg text-emerald-gold">
+                <a href="#inicio" onclick="toggleMobileMenu()" class="hover:text-gold pb-2 border-b border-gray-100">Inicio</a>
+                <a href="#catalogo" onclick="toggleMobileMenu()" class="hover:text-gold pb-2 border-b border-gray-100">Catálogo</a>
+                <a href="#pagos" onclick="toggleMobileMenu()" class="hover:text-gold pb-2 border-b border-gray-100">Formas de Pago</a>
+                <a href="#reviews" onclick="toggleMobileMenu()" class="hover:text-gold pb-2 border-b border-gray-100">Reseñas</a>
+                <a href="#contacto" onclick="toggleMobileMenu()" class="hover:text-gold">Contacto</a>
+            </div>
+        </nav>
+        
+        <!-- Carrusel de Presentación (Carousel) -->
+        <section id="inicio" class="carousel-container shadow-xl">
+            <div id="carousel-images" class="carousel-images">
+                <!-- Slide 1: Nueva Colección -->
+                <div class="carousel-slide flex items-center justify-center relative" style="background-image: url('https://iili.io/Kg2Ux0g.jpg');">
+                    <div class="absolute inset-0 bg-black opacity-30"></div>
+                    <div class="text-center p-8 relative z-10">
+                        <h2 class="header-font text-5xl font-extrabold text-white mb-2 tracking-wider">Nueva Colección</h2>
+                        <p class="text-xl text-gray-200">Joyas que cuentan tu historia.</p>
+                    </div>
+                </div>
+                <!-- Slide 2: Lujo Duradero -->
+                <div class="carousel-slide flex items-center justify-center relative" style="background-image: url('https://iili.io/Kg2U7zN.md.jpg');">
+                    <div class="absolute inset-0 bg-black opacity-30"></div>
+                    <div class="text-center p-8 relative z-10">
+                        <h2 class="header-font text-5xl font-extrabold text-white mb-2 tracking-wider">Lujo Duradero</h2>
+                        <p class="text-xl text-gray-200">Diseños únicos en oro 18K.</p>
+                    </div>
+                </div>
+                <!-- Slide 3: Charms Detallados -->
+                <div class="carousel-slide flex items-center justify-center relative" style="background-image: url('https://iili.io/Kg2UqzB.webp');">
+                    <div class="absolute inset-0 bg-black opacity-30"></div>
+                    <div class="text-center p-8 relative z-10">
+                        <h2 class="header-font text-5xl font-extrabold text-white mb-2 tracking-wider">Charms y Pulseras</h2>
+                        <p class="text-xl text-gray-200">Personaliza tu estilo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón Anterior -->
+            <button class="carousel-nav-btn left-4" onclick="prevSlide()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <!-- Botón Siguiente -->
+            <button class="carousel-nav-btn right-4" onclick="nextSlideManual()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+        </section>
+
+        <!-- Contenedor Principal de Productos -->
+        <main id="catalogo" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pt-12">
+            <h2 class="header-font text-4xl font-extrabold text-emerald-gold mb-12 text-center border-b-2 pb-2 border-gold">Catálogo de Charms y Joyería Fina</h2>
+            
+            <!-- APLICAMOS CSS GRID para asegurar que las tarjetas tengan la misma altura (items-stretch es el comportamiento por defecto en grid) -->
+            <div id="product-grid" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                <!-- Las tarjetas de productos se renderizarán aquí -->
+            </div>
+        </main>
+        
+        <!-- Sección de Reseñas -->
+        <section id="reviews" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 my-16">
+            <h3 class="header-font text-4xl font-extrabold text-emerald-gold mb-12 text-center border-b-2 pb-2 border-gold">Nuestras Reseñas Verificadas</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Reseña 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-gold">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/50x50/D1D5DB/1F2937?text=MP" onerror="this.onerror=null;this.src='https://placehold.co/50x50/D1D5DB/1F2937?text=MP'" alt="Foto María" class="w-12 h-12 rounded-full object-cover mr-4">
+                        <div>
+                            <p class="font-bold text-emerald-gold">María P. (Bogotá)</p>
+                            <div class="flex text-gold text-lg">
+                                <!-- Estrellas de reseña -->
+                                &#9733;&#9733;&#9733;&#9733;&#9733; 
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">"La mejor inversión. El collar Esmeralda que compré es sencillamente espectacular, la atención al detalle es de primera clase. ¡Volveré a comprar!"</p>
+                </div>
+                 <!-- Reseña 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-gold">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/50x50/D1D5DB/1F2937?text=JA" onerror="this.onerror=null;this.src='https://placehold.co/50x50/D1D5DB/1F2937?text=JA'" alt="Foto Juan" class="w-12 h-12 rounded-full object-cover mr-4">
+                        <div>
+                            <p class="font-bold text-emerald-gold">Juan A. (Medellín)</p>
+                            <div class="flex text-gold text-lg">
+                                &#9733;&#9733;&#9733;&#9733;&#9733;
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">"El proceso de pago fue muy sencillo y el envío a Medellín rapidísimo. Compré un anillo de compromiso y es perfecto. Gracias por la asesoría."</p>
+                </div>
+                 <!-- Reseña 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-gold">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/50x50/D1D5DB/1F2937?text=LB" onerror="this.onerror=null;this.src='https://placehold.co/50x50/D1D5DB/1F2937?text=LB'" alt="Foto Luisa" class="w-12 h-12 rounded-full object-cover mr-4">
+                        <div>
+                            <p class="font-bold text-emerald-gold">Luisa B. (Cali)</p>
+                            <div class="flex text-gold text-lg">
+                                &#9733;&#9733;&#9733;&#9733;&#9733;
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">"Compré varios charms y la calidad del oro es notoria. Me encanta que la atención por WhatsApp sea tan personalizada. 5/5 estrellas."</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sección de Formas de Pago con Logos MEJORADA Y ORGANIZADA -->
+        <section id="pagos" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 my-12 bg-white rounded-xl shadow-xl border-t-8 border-gold">
+            <h3 class="header-font text-3xl font-bold text-emerald-gold mb-8 text-center border-b-2 pb-2 border-gold">Nuestros Métodos de Pago Seguros y Organizados</h3>
+            
+            <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">Elige la opción que mejor se adapte a tus necesidades. Todas nuestras transacciones están protegidas y cifradas.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <!-- Columna 1: Tarjetas de Crédito y Débito -->
+                <div class="p-6 rounded-xl shadow-lg border border-gray-100 bg-white">
+                    <h4 class="font-bold text-xl text-emerald-gold mb-4 text-center border-b pb-2 border-gray-100">
+                        💳 Tarjetas (Crédito / Débito)
+                    </h4>
+                    
+                    <!-- Grid 2x2 para logos de tarjetas -->
+                    <div class="grid grid-cols-2 gap-4">
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <img src="https://iili.io/KgdtO3N.png" onerror="this.onerror=null;this.src='https://placehold.co/100x48/FFFFFF/1F2937?text=Visa'" alt="Logo Visa" class="payment-logo h-8 sm:h-10 mb-1">
+                            <span class="text-xs font-semibold text-gray-600">VISA</span>
+                        </div>
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <img src="https://iili.io/Kgdtw4p.png" onerror="this.onerror=null;this.src='https://placehold.co/100x48/FFFFFF/1F2937?text=MasterCard'" alt="Logo Mastercard" class="payment-logo h-8 sm:h-10 mb-1">
+                            <span class="text-xs font-semibold text-gray-600">MasterCard</span>
+                        </div>
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <img src="https://iili.io/KgdteaI.png" onerror="this.onerror=null;this.src='https://placehold.co/100x48/FFFFFF/1F2937?text=Amex'" alt="Logo American Express" class="payment-logo h-8 sm:h-10 mb-1">
+                            <span class="text-xs font-semibold text-gray-600">Amex</span>
+                        </div>
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <!-- Icono de Tarjeta (Alternativo) -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card h-8 w-8 mb-1"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                            <span class="text-xs font-semibold text-emerald-gold">Otras Tarjetas</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-4 text-center">Procesado a través de pasarela de pago segura.</p>
+                </div>
+
+                <!-- Columna 2: Bancos y Transferencias -->
+                <div class="p-6 rounded-xl shadow-lg border border-gray-100 bg-white">
+                    <h4 class="font-bold text-xl text-emerald-gold mb-4 text-center border-b pb-2 border-gray-100">
+                        🏦 Bancos y Transferencias
+                    </h4>
+                    
+                    <!-- Grid 2x2 para logos bancarios -->
+                    <div class="grid grid-cols-2 gap-4">
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <img src="https://iili.io/KgdtjGR.png" onerror="this.onerror=null;this.src='https://placehold.co/100x48/FFFFFF/000000?text=PSE'" alt="Logo PSE" class="payment-logo h-10 sm:h-12">
+                            <span class="text-xs font-semibold text-gray-600 mt-1">PSE</span>
+                        </div>
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <img src="https://iili.io/Kgdtw4p.png" onerror="this.onerror=null;this.src='https://placehold.co/100x48/FFFFFF/1F2937?text=MasterCard'" alt="Logo Mastercard" class="payment-logo h-8 sm:h-10 mb-1">
+                            <span class="text-xs font-semibold text-gray-600">Bancolombia</span>
+                        </div>
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <img src="https://iili.io/Kgdtkvt.png" onerror="this.onerror=null;this.src='https://placehold.co/100x48/FFFFFF/F7931E?text=Nequi'" alt="Logo Nequi" class="payment-logo h-10 sm:h-12">
+                            <span class="text-xs font-semibold text-gray-600 mt-1">Nequi</span>
+                        </div>
+                        
+                        <div class="payment-option-card hover:border-gold border-gray-100">
+                            <img src="https://iili.io/Kgdt4nf.webp" onerror="this.onerror=null;this.src='https://placehold.co/100x48/FFFFFF/335889?text=Daviplata'" alt="Logo Daviplata" class="payment-logo h-8 sm:h-10 mb-1">
+                            <span class="text-xs font-semibold text-gray-600">Daviplata</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-4 text-center">Transferencias inmediatas o pagos vía PSE.</p>
+                </div>
+                
+                <!-- Columna 3: Financiación y Opciones Especiales -->
+                <div class="p-6 rounded-xl shadow-lg border border-gray-100 bg-white flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-xl text-emerald-gold mb-4 text-center border-b pb-2 border-gray-100">
+                            ✨ Financiación y Efectivo
+                        </h4>
+                        
+                        <div class="flex flex-col space-y-4">
+                            
+                            <!-- Tarjeta de Financiación (Addi) -->
+                            <div class="payment-option-card flex-1 min-w-0 hover:border-gold border-gray-100">
+                                <img src="https://iili.io/KgdtgZG.png" onerror="this.onerror=null;this.src='https://placehold.co/80x30/FFFFFF/0055A5?text=Addi'" alt="Logo Addi" class="payment-logo h-6 sm:h-7 mb-1">
+                                <span class="text-sm font-bold text-gray-800">Financiación Addi</span>
+                                <p class="text-xs text-gold mt-1">(Sujeto a aprobación)</p>
+                            </div>
+                            
+                            <!-- Tarjeta de Contra Entrega -->
+                            <div class="payment-option-card flex-1 min-w-0 hover:border-gold border-gray-100">
+                                 <img src="https://iili.io/Kgdt6G4.md.jpg" onerror="this.onerror=null;this.src='https://placehold.co/40x40/FAFAFA/047857?text=Efectivo'" alt="Icono de Pago Contra Entrega" class="payment-logo h-8 w-8 mb-1">
+                                <span class="text-sm font-bold text-emerald-gold">Pago Contra Entrega</span>
+                                <p class="text-xs text-gray-600 mt-1">Solo en ciudades selec.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-400 mt-4 text-center">Paga a cuotas o al recibir tu pedido.</p>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- SECCIÓN DE CONTACTO MEJORADA -->
+        <section id="contacto" class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 my-16">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center border-t-8 border-gold">
+                
+                <!-- Icono de Diamante y Título -->
+                <div class="flex items-center justify-center mb-6">
+                    <!-- Icono de Diamante (inline SVG con color Oro) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D9A95B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gem mr-3">
+                        <path d="M6 3h12l4 5-10 12L2 8l4-5z"/>
+                        <path d="M12 21 2 8h20z"/>
+                    </svg>
+                    <h3 class="header-font text-3xl md:text-4xl font-extrabold text-emerald-gold">
+                        ¿Necesitas Asesoría Exclusiva?
+                    </h3>
+                </div>
+                
+                <p class="text-gray-700 mb-8 max-w-2xl mx-auto text-lg">
+                    Nuestro equipo de expertos en joyería está listo para responder tus preguntas, ayudarte a elegir la pieza perfecta o guiarte en tu proceso de compra.
+                    Contáctanos al instante por WhatsApp.
+                </p>
+                
+                <!-- Botón Principal de WhatsApp (Destacado) -->
+                <button class="gold-button flex items-center justify-center space-x-3 py-3 md:py-4 px-10 rounded-full text-lg md:text-xl font-bold shadow-xl hover:scale-[1.03] transition transform duration-200 mx-auto" onclick="contactWhatsApp()">
+                    <!-- WhatsApp Icon (Inline SVG) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-white">
+                        <path d="M12.001 0C6.182 0 1.5 4.682 1.5 10.501c0 2.217.697 4.275 1.896 5.962L1.875 22.5l6.236-1.642c1.652.793 3.513 1.253 5.39 1.253 5.819 0 10.5-4.682 10.5-10.5C22.5 4.682 17.819 0 12.001 0zm0 1.5c4.978 0 9 4.022 9 9s-4.022 9-9 9c-1.84 0-3.56-.554-5.004-1.504l-.364-.22-3.837 1.008 1.025-3.693-.243-.377C2.07 13.91 1.5 12.28 1.5 10.501c0-4.978 4.022-9 9-9zM8.825 6.641c-.13-.277-.282-.284-.429-.289-.136 0-.294.004-.45.008-.155.004-.413.064-.627.319-.214.256-.818.8-.818 1.948s.84 2.261.956 2.416c.115.155 1.62 2.618 4.02 3.619 2.164.896 2.607.728 3.093.68c.486-.048 1.528-.621 1.742-1.229.214-.61.214-.61.151-.728-.063-.118-.231-.186-.486-.319-.255-.132-1.49-.747-1.725-.836-.235-.09-.408-.135-.58-.135-.173 0-.34.045-.52.263-.18.217-.69.836-.84.99-.15.155-.31.173-.55.053-.24-.12-.997-.367-1.898-1.176-.708-.636-1.187-1.423-1.337-1.68-.15-.257-.015-.394.12-.53s.277-.33.413-.497c.135-.168.18-.284.27-.47.09-.186.045-.34-.027-.47-.072-.132-.656-1.576-.891-2.15z"/>
+                    </svg>
+                    <span>Chatea con un Asesor ¡Ahora!</span>
+                </button>
+                
+                <p class="text-sm text-gray-400 mt-4">(+57 3043121666 - Lunes a Sábado)</p>
+            </div>
+        </section>
+        <!-- FIN SECCIÓN DE CONTACTO MEJORADA -->
+
+
+        <!-- Modal/Overlay del Carrito (Se desliza desde la derecha y se cierra automáticamente) -->
+        <div id="cart-overlay" class="fixed inset-0 z-50 bg-black bg-opacity-30 opacity-0 cart-modal" onclick="closeCart(event)">
+            <!-- Contenido del Carrito: Flota a la derecha -->
+            <div id="cart-content" class="bg-white rounded-l-xl shadow-[0_0_20px_rgba(0,0,0,0.3)] h-full w-full max-w-sm absolute top-0 right-0 p-6 sm:p-8" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center border-b border-emerald-gold pb-4 mb-6">
+                    <h3 class="header-font text-2xl font-bold text-emerald-gold">Tu Carrito</h3>
+                    <button class="text-emerald-gold hover:text-gold" onclick="toggleCart()">
+                        <!-- Icono X para cerrar -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+                <ul id="cart-items" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                    <!-- Los elementos del carrito se renderizarán aquí -->
+                </ul>
+                <div id="cart-summary" class="mt-8 pt-6 border-t border-gray-200">
+                    <div class="flex justify-between font-extrabold text-xl mb-6 text-emerald-gold">
+                        <span>Total:</span>
+                        <span id="cart-total" class="text-gold font-extrabold">COP 0</span>
+                    </div>
+                    <!-- Botón Modificado para llamar a la función de pago -->
+                    <button class="w-full py-3 rounded-full gold-button font-bold tracking-wider uppercase text-lg" onclick="proceedToPayment()">
+                        Proceder al Pago
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MODAL DE CHECKOUT (PROCESO DE PAGO MULTI-STEP) -->
+        <div id="checkout-modal-overlay" class="checkout-modal-overlay" onclick="closeCheckoutModal(event)">
+            <div id="checkout-modal-content" class="checkout-modal-content" onclick="event.stopPropagation()">
+                
+                <div class="p-6 sm:p-8">
+                    <div class="flex justify-between items-start border-b pb-4 mb-6">
+                        <h3 class="header-font text-3xl font-bold text-emerald-gold">Finalizar Compra</h3>
+                        <!-- Botón para cerrar el modal -->
+                        <button class="text-gray-400 hover:text-red-500 transition" onclick="closeCheckoutModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Indicadores de Paso (4 Pasos) -->
+                    <div class="flex justify-center items-center mb-8 space-x-2">
+                        <span id="step-indicator-1" class="step-indicator active">1</span>
+                        <div class="h-0.5 w-8 bg-gray-300"></div>
+                        <span id="step-indicator-2" class="step-indicator">2</span>
+                        <div class="h-0.5 w-8 bg-gray-300"></div>
+                        <span id="step-indicator-3" class="step-indicator">3</span>
+                        <div class="h-0.5 w-8 bg-gray-300"></div>
+                        <span id="step-indicator-4" class="step-indicator">4</span>
+                    </div>
+
+                    <!-- Contenedor de Pasos -->
+                    <div id="checkout-steps-container">
+                        
+                        <!-- PASO 1: DATOS DE ENVÍO -->
+                        <div id="step-1" class="checkout-step active">
+                            <h4 class="header-font text-xl font-bold mb-4 text-center text-gold">1. Datos de Contacto y Envío</h4>
+                            <p id="error-message-1" class="text-red-500 text-sm text-center mb-4 hidden font-semibold bg-red-50 p-2 rounded-lg">Por favor, complete todos los campos requeridos.</p>
+                            <div class="space-y-4">
+                                <input type="text" id="checkout-name" placeholder="Nombre Completo *" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-gold focus:border-emerald-gold">
+                                <input type="email" id="checkout-email" placeholder="Correo Electrónico *" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-gold focus:border-emerald-gold">
+                                <input type="tel" id="checkout-phone" placeholder="Teléfono de Contacto *" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-gold focus:border-emerald-gold">
+                                <input type="text" id="checkout-address" placeholder="Dirección de Envío Completa *" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-gold focus:border-emerald-gold">
+                                <input type="text" id="checkout-city" placeholder="Ciudad / Municipio *" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-gold focus:border-emerald-gold">
+                            </div>
+                            <button class="gold-button w-full py-3 mt-6 rounded-full font-bold" onclick="nextCheckoutStep(1)">Siguiente: Elegir Pago</button>
+                        </div>
+
+                        <!-- NUEVO PASO 2: SELECCIÓN DE MÉTODO DE PAGO -->
+                        <div id="step-2" class="checkout-step">
+                            <h4 class="header-font text-xl font-bold mb-6 text-center text-gold">2. Selecciona tu Método de Pago</h4>
+                            <p id="error-message-2" class="text-red-500 text-sm text-center mb-4 hidden font-semibold bg-red-50 p-2 rounded-lg">Por favor, elige un método de pago antes de continuar.</p>
+
+                            <div class="grid grid-cols-2 gap-4 sm:gap-6">
+                                
+                                <!-- Opción 1: Tarjetas -->
+                                <div class="payment-option-card" data-payment="Tarjeta" onclick="selectPayment('Tarjeta')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D9A95B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card mb-2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                                    <span class="text-md text-emerald-gold">Tarjeta (Crédito/Débito)</span>
+                                    <p class="text-xs text-gray-500 mt-1">Pago inmediato y seguro.</p>
+                                </div>
+
+                                <!-- Opción 2: Bancos Virtuales / PSE -->
+                                <div class="payment-option-card" data-payment="Bancos Virtuales" onclick="selectPayment('Bancos Virtuales')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D9A95B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark mb-2"><path d="M3 22v-6c0-1 1-2 2-2h14c1 0 2 1 2 2v6"/><path d="M2 10l10-7 10 7"/><path d="M12 21.5V14"/></svg>
+                                    <span class="text-md text-emerald-gold">Bancos Virtuales (PSE/Nequi)</span>
+                                    <p class="text-xs text-gray-500 mt-1">Transferencias en línea.</p>
+                                </div>
+                                
+                                <!-- Opción 3: Financiación Addi -->
+                                <div class="payment-option-card" data-payment="Addi" onclick="selectPayment('Addi')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D9A95B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-percent mb-2"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+                                    <span class="text-md text-emerald-gold">Financiación Addi</span>
+                                    <p class="text-xs text-gold mt-1 font-bold">Paga en cuotas.</p>
+                                </div>
+
+                                <!-- Opción 4: Pago Contra Entrega -->
+                                <div class="payment-option-card" data-payment="Contra Entrega" onclick="selectPayment('Contra Entrega')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-box-select mb-2"><path d="M12.5 22H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14c1.1 0 2 .9 2 2v4.5"/><path d="M12 2v2"/><path d="M7 2v2"/><path d="M17 2v2"/><path d="M2 7h4"/><path d="M2 17h4"/><path d="M18 17h4"/><path d="M22 7h-4"/><circle cx="18" cy="18" r="4"/></svg>
+                                    <span class="text-md text-emerald-gold">Pago Contra Entrega</span>
+                                    <p class="text-xs text-gray-500 mt-1">Paga al recibir.</p>
+                                </div>
+                                
+                            </div>
+
+                            <div class="flex justify-between space-x-4 mt-6">
+                                <button class="w-1/3 py-3 rounded-full text-emerald-gold border border-emerald-gold hover:bg-gray-100 transition font-bold" onclick="prevCheckoutStep(2)">Atrás</button>
+                                <button class="gold-button w-2/3 py-3 rounded-full font-bold" onclick="nextCheckoutStep(2)">Siguiente: Resumen del Pedido</button>
+                            </div>
+                        </div>
+
+
+                        <!-- PASO 3: RESUMEN Y CONFIRMACIÓN -->
+                        <div id="step-3" class="checkout-step">
+                            <h4 class="header-font text-xl font-bold mb-4 text-center text-gold">3. Confirmación Final</h4>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                                <h5 class="font-bold text-lg text-emerald-gold mb-3">Detalles del Envío y Pago</h5>
+                                <p id="summary-user-details" class="text-sm text-gray-700 space-y-1"></p>
+                                <p class="text-sm font-bold mt-2 border-t pt-2 border-gray-200"><span class="font-semibold text-emerald-gold">Método Elegido:</span> <span id="summary-payment-method" class="text-gold">Tarjeta</span></p>
+                            </div>
+                            
+                            <h5 class="font-bold text-lg text-emerald-gold mb-3">Productos</h5>
+                            <ul id="summary-items" class="space-y-3 max-h-40 overflow-y-auto pr-2 mb-6">
+                                <!-- Ítems del carrito se renderizarán aquí -->
+                            </ul>
+                            
+                            <div class="border-t border-gray-200 pt-4 flex justify-between font-extrabold text-xl">
+                                <span class="text-emerald-gold">Total a Pagar:</span>
+                                <span id="summary-total" class="text-gold">COP 0</span>
+                            </div>
+
+                            <div class="flex justify-between space-x-4 mt-6">
+                                <button class="w-1/3 py-3 rounded-full text-emerald-gold border border-emerald-gold hover:bg-gray-100 transition font-bold" onclick="prevCheckoutStep(3)">Atrás</button>
+                                <button class="gold-button w-2/3 py-3 rounded-full font-bold" onclick="nextCheckoutStep(3)">Confirmar y Pagar</button>
+                            </div>
+                        </div>
+
+                        <!-- PASO 4: PAGO Y ÉXITO -->
+                        <div id="step-4" class="checkout-step text-center">
+                            <div id="payment-processing" class="mb-8">
+                                <h4 class="header-font text-2xl font-bold text-emerald-gold mb-4">Procesando Pago...</h4>
+                                <!-- Loader (Spinning circle) -->
+                                <div class="flex justify-center mb-6">
+                                    <svg class="animate-spin h-12 w-12 text-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-600">Esto puede tomar unos segundos mientras confirmamos tu orden y guardamos la información.</p>
+                            </div>
+
+                            <div id="payment-success" class="mb-8 hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2 mx-auto mb-4">
+                                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="m9 12 2 2 4-4"/>
+                                </svg>
+                                <h4 class="header-font text-3xl font-bold text-emerald-gold mb-2">¡Pago Exitoso!</h4>
+                                <p class="text-lg text-gray-700">Tu orden <span id="order-id-display" class="font-mono text-gold font-semibold">#PENDING</span> ha sido recibida y se encuentra en preparación.</p>
+                                <p class="text-sm text-gray-500 mt-2">Recibirás una confirmación en <span id="success-email-display" class="font-semibold"></span>.</p>
+                            </div>
+                            
+                            <button class="gold-button w-full py-3 mt-6 rounded-full font-bold" onclick="location.reload()">Regresar al Catálogo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FIREBASE IMPORTS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Establecer el nivel de log (Opcional, pero útil para depuración)
+        setLogLevel('error'); // Cambiar a 'debug' si se necesita ver logs detallados
+
+        // Variables Globales de Firebase (PROVISTAS POR EL ENTORNO)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let db;
+        let auth;
+        let userId = 'anon_user'; // Valor por defecto
+
+        // Inicialización de Firebase
+        try {
+            if (Object.keys(firebaseConfig).length > 0) {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // 1. Establecer persistencia local
+                setPersistence(auth, browserLocalPersistence)
+                    .then(() => {
+                        // 2. Autenticación
+                        if (initialAuthToken) {
+                            return signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            return signInAnonymously(auth);
+                        }
+                    })
+                    .then((userCredential) => {
+                        userId = userCredential.user.uid;
+                        console.log("Firebase Auth OK. User ID:", userId);
+                    })
+                    .catch((error) => {
+                        console.error("Firebase Authentication Error:", error);
+                        // En caso de error, el userId sigue siendo 'anon_user'
+                    });
+            } else {
+                console.warn("Firebase config not available. Orders will not be saved persistently.");
+            }
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+        }
+
+        // Exportar las funciones de Firebase para que el código no modular las use
+        window.getFirestore = () => db;
+        window.getAuth = () => auth;
+        window.getUserId = () => userId;
+        window.addDoc = addDoc;
+        window.collection = collection;
+        window.firebaseReady = () => !!db; // Función de chequeo rápido
+    </script>
+
+    <script type="text/javascript">
+        // Estado de la Aplicación
+        const appData = {
+            products: [
+                { id: 1, name: "Charm de Corazón Esmeralda", price: 350000, image: "https://iili.io/Kg2eeZF.webp", 
+                  brief: "Charm de plata con circonia cúbica en talla corazón color esmeralda.", 
+                  details: "Fabricado en Plata 925 con acabado de rodio. Un regalo ideal que simboliza el amor y la esperanza. Compatible con todas las pulseras estándar." },
+                { id: 2, name: "Brazalete de Malla con Cierre Oro", price: 650000, image: "https://iili.io/Kg2eOj1.webp", 
+                  brief: "Brazalete de malla fina con cierre tipo broche enchapado en oro 18K.", 
+                  details: "Diseño elegante y moderno, perfecto para coleccionar charms. Muy resistente y cómodo, ideal para uso diario o eventos especiales." },
+                { id: 3, name: "Charm Colgante 'Árbol Familiar'", price: 420000, image: "https://iili.io/Kg2evCg.webp", 
+                  brief: "Charm colgante con diseño de árbol de la vida y grabados 'Familia'.", 
+                  details: "Un tributo a tus seres queridos. Detallado con pequeñas gemas sintéticas que le dan un brillo sutil. El mejor símbolo de conexión." },
+                { id: 4, name: "Anillo Vintage con Zafiro", price: 980000, image: "https://iili.io/Kg2eraR.jpg", 
+                  brief: "Anillo de compromiso estilo vintage con piedra central de zafiro azul.", 
+                  details: "La joya perfecta para la propuesta. Zafiro natural, rodeado de diamantes simulados. Incluye certificado de autenticidad y garantía de por vida." },
+                { id: 5, name: "Set de Pendientes Clásicos 'Oro'", price: 510000, image: "https://iili.io/Kg2eg3v.md.jpg", 
+                  brief: "Set de pendientes de botón de oro 14K, con corte brillante.", 
+                  details: "Un básico de lujo. Ligero, hipoalergénico y con un brillo inigualable. El cierre de mariposa asegura comodidad y que no se pierdan." },
+                { id: 6, name: "Charm Abierto 'Copo de Nieve'", price: 290000, image: "https://iili.io/Kg2e4vp.webp", 
+                  brief: "Delicado charm abierto, ideal para combinar, con forma de copo de nieve.", 
+                  details: "Hecho para capturar la luz. El diseño abierto permite deslizarlo fácilmente. Bañado en oro blanco, ideal para la temporada invernal o colecciones temáticas." },
+            ],
+            cart: [], // { id: 1, name: '...', price: 99.99, quantity: 1 }
+            isCartOpen: false,
+            // Estado del Checkout
+            checkoutStep: 1,
+            checkoutData: {
+                name: '', email: '', phone: '', address: '', city: ''
+            },
+            selectedPaymentMethod: null, // NUEVO: Método de pago seleccionado
+            // Tiempo en milisegundos para mantener el carrito abierto después de añadir un ítem
+            CLOSE_DELAY_MS: 1500, // 1.5 segundos
+            currentSlide: 0,
+            slideInterval: null,
+            totalSlides: 3,
+            // Intervalo de rotación automática
+            AUTOSLIDE_INTERVAL_MS: 5000
+        };
+
+        // Referencias del DOM
+        const productGrid = document.getElementById('product-grid');
+        const cartOverlay = document.getElementById('cart-overlay');
+        const cartItemsList = document.getElementById('cart-items');
+        const cartTotalDisplay = document.getElementById('cart-total');
+        const cartCountDesktop = document.getElementById('cart-count');
+        const cartCountMobile = document.getElementById('cart-count-mobile');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const carouselImages = document.getElementById('carousel-images');
+        const checkoutModalOverlay = document.getElementById('checkout-modal-overlay');
+        let closeTimeout = null; // Para manejar el temporizador de cierre
+
+        // Número de WhatsApp y mensaje personalizado
+        const WHATSAPP_NUMBER = '573043121666'; // Número sin "+"
+        const WHATSAPP_MESSAGE = encodeURIComponent("¡Hola! Estoy interesado/a en realizar una compra y me gustaría obtener más información sobre los productos y el proceso de envío. Gracias.");
+
+        /**
+         * Formatea un número como Peso Colombiano (COP).
+         * @param {number} value El valor numérico.
+         * @returns {string} El valor formateado.
+         */
+        function formatCOP(value) {
+            // Utiliza el locale de Colombia para formatear con separadores de miles y el símbolo COP.
+            return 'COP ' + value.toLocaleString('es-CO');
+        }
+
+        /**
+         * Redirige al usuario a WhatsApp con un mensaje preescrito.
+         */
+        function contactWhatsApp() {
+            const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
+            window.open(url, '_blank');
+        }
+
+        /**
+         * Renderiza la cuadrícula de productos.
+         */
+        function renderProducts() {
+            productGrid.innerHTML = appData.products.map(product => `
+                <!-- Contenedor principal de la tarjeta: Añadimos la clase 'group' para el hover -->
+                <div class="group relative flex flex-col bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 overflow-hidden border-t-4 border-emerald-gold">
+                    <!-- Imagen del Producto -->
+                    <img src="${product.image}" onerror="this.onerror=null;this.src='https://placehold.co/400x300/F0FFF0/047857?text=Joya+Exclusiva'" alt="${product.name}" class="w-full h-64 object-cover">
+                    
+                    <!-- Contenido de la Tarjeta: flex-grow permite que ocupe el espacio restante -->
+                    <div class="p-5 flex flex-col flex-grow text-center">
+                        <h3 class="header-font text-xl font-bold mb-2 text-emerald-gold">${product.name}</h3>
+                        
+                        <!-- Descripción Breve (Siempre visible) -->
+                        <p class="text-sm text-gray-600 font-medium mb-3">${product.brief}</p>
+                        
+                        <!-- Separador animado: Se expande en hover -->
+                        <div class="divider-animated mx-auto bg-gold w-0 group-hover:w-full"></div>
+
+                        <!-- Descripción Expandida (Oculta por defecto) -->
+                        <div class="description-expand text-center pt-2 pb-4">
+                            <p class="text-xs text-gray-700 font-semibold mb-1 uppercase text-gold">Más detalles:</p>
+                            <p class="text-sm text-gray-500 italic">${product.details}</p>
+                        </div>
+                        
+                        <!-- Precio (Siempre visible) -->
+                        <p class="text-2xl font-semibold text-gold mb-4 mt-auto">${formatCOP(product.price)}</p>
+
+                        <!-- Botón alinea automáticamente al final: mt-auto -->
+                        <button class="w-full py-2.5 rounded-full gold-button font-medium" onclick="addItemToCart(${product.id})">
+                            Añadir al Carrito
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Renderiza el contenido del carrito (ítems y total).
+         */
+        function renderCart() {
+            const total = appData.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const totalItems = appData.cart.reduce((sum, item) => sum + item.quantity, 0);
+
+            cartTotalDisplay.textContent = formatCOP(total);
+            cartCountDesktop.textContent = totalItems.toString();
+            cartCountMobile.textContent = totalItems.toString();
+
+
+            if (appData.cart.length === 0) {
+                cartItemsList.innerHTML = '<p class="text-gray-500 text-center py-6 italic">Tu carrito está vacío. ¡Añade tu joya favorita!</p>';
+                document.getElementById('cart-summary').classList.add('hidden');
+            } else {
+                document.getElementById('cart-summary').classList.remove('hidden');
+                cartItemsList.innerHTML = appData.cart.map(item => `
+                    <li class="flex items-center justify-between p-3 bg-gray-50 rounded-lg shadow-sm border-l-4 border-gold">
+                        <div class="flex-grow">
+                            <span class="font-medium text-emerald-gold">${item.name}</span>
+                            <span class="block text-sm text-gray-600">${item.quantity} x ${formatCOP(item.price)}</span>
+                        </div>
+                        <button class="text-red-500 hover:text-red-700 text-sm p-1 ml-4 rounded-full transition" onclick="removeItemFromCart(${item.id})" title="Eliminar uno">
+                            <!-- Icono de Bote de Basura -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M15 6V4c0-1-1-2-2-2h-2c-1 0-2 1-2 2v2"/></svg>
+                        </button>
+                    </li>
+                `).join('');
+            }
+
+            // Control de la visibilidad del modal del carrito
+            if (appData.isCartOpen) {
+                cartOverlay.classList.add('open');
+            } else {
+                cartOverlay.classList.remove('open');
+            }
+        }
+
+        /**
+         * Añade un ítem al carrito y ejecuta el CIERRE AUTOMÁTICO.
+         */
+        function addItemToCart(productId) {
+            const product = appData.products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existingItem = appData.cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                // Copia las propiedades relevantes para el carrito
+                const { id, name, price } = product; 
+                appData.cart.push({ id, name, price, quantity: 1 });
+            }
+
+            clearTimeout(closeTimeout);
+
+            appData.isCartOpen = true;
+            renderCart();
+
+            closeTimeout = setTimeout(() => {
+                if (appData.isCartOpen) {
+                    appData.isCartOpen = false;
+                    renderCart();
+                }
+            }, appData.CLOSE_DELAY_MS);
+        }
+
+        /**
+         * Elimina un ítem del carrito o reduce su cantidad.
+         */
+        function removeItemFromCart(productId) {
+            const existingItemIndex = appData.cart.findIndex(item => item.id === productId);
+
+            if (existingItemIndex > -1) {
+                const item = appData.cart[existingItemIndex];
+                if (item.quantity > 1) {
+                    item.quantity -= 1;
+                } else {
+                    appData.cart.splice(existingItemIndex, 1);
+                }
+            }
+            renderCart();
+        }
+
+        /**
+         * Alterna la visibilidad del carrito (manual).
+         */
+        function toggleCart() {
+            if (appData.isCartOpen) {
+                 clearTimeout(closeTimeout);
+            }
+            appData.isCartOpen = !appData.isCartOpen;
+            renderCart();
+        }
+
+        /**
+         * Cierra el carrito al hacer clic en el fondo oscuro.
+         */
+        function closeCart(event) {
+            if (event.target === cartOverlay) {
+                appData.isCartOpen = false;
+                renderCart();
+                clearTimeout(closeTimeout);
+            }
+        }
+        
+        /**
+         * Alterna el menú móvil.
+         */
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('open');
+            // Cierra el carrito si está abierto
+            if(appData.isCartOpen) {
+                appData.isCartOpen = false;
+                renderCart();
+            }
+        }
+        
+        /* Lógica del Carrusel */
+
+        /**
+         * Mueve el carrusel a la siguiente diapositiva (automático o manual).
+         */
+        function nextSlide() {
+            appData.currentSlide = (appData.currentSlide + 1) % appData.totalSlides;
+            updateCarousel();
+        }
+        
+        /**
+         * Mueve el carrusel a la diapositiva anterior (manual).
+         */
+        function prevSlide() {
+            appData.currentSlide = (appData.currentSlide - 1 + appData.totalSlides) % appData.totalSlides;
+            updateCarousel();
+            // Reinicia el contador automático después de la interacción manual
+            startCarousel(); 
+        }
+
+        /**
+         * Llama a nextSlide y reinicia el automático.
+         */
+        function nextSlideManual() {
+            nextSlide();
+            // Reinicia el contador automático después de la interacción manual
+            startCarousel(); 
+        }
+
+        /**
+         * Actualiza la posición del carrusel.
+         */
+        function updateCarousel() {
+            const offset = -appData.currentSlide * (100 / appData.totalSlides);
+            carouselImages.style.transform = `translateX(${offset}%)`;
+        }
+
+        /**
+         * Inicia la rotación automática del carrusel.
+         */
+        function startCarousel() {
+            // Detiene cualquier intervalo previo
+            if (appData.slideInterval) {
+                clearInterval(appData.slideInterval);
+            }
+            // Inicia un nuevo intervalo para cambiar de slide
+            appData.slideInterval = setInterval(nextSlide, appData.AUTOSLIDE_INTERVAL_MS); 
+        }
+
+        // --- LÓGICA DE CHECKOUT Y PAGO ---
+
+        /**
+         * Inicia el proceso de pago.
+         */
+        function proceedToPayment() {
+            if (appData.cart.length === 0) {
+                showTemporaryMessage("Tu carrito está vacío. ¡Añade productos para pagar!", 'error');
+                return;
+            }
+            
+            // Cierra el carrito si está abierto
+            if (appData.isCartOpen) {
+                appData.isCartOpen = false;
+                renderCart();
+            }
+
+            // Inicia el checkout
+            appData.checkoutStep = 1;
+            renderCheckoutStep();
+            checkoutModalOverlay.classList.add('open');
+            document.getElementById('error-message-1').classList.add('hidden'); // Ocultar errores previos
+        }
+
+        /**
+         * Cierra el modal de checkout.
+         */
+        function closeCheckoutModal(event) {
+            if (event === undefined || event.target === checkoutModalOverlay) { 
+                checkoutModalOverlay.classList.remove('open');
+            }
+        }
+        
+        /**
+         * Muestra un mensaje temporal en el footer o una posición prominente (Simulación de notificación).
+         */
+        function showTemporaryMessage(message, type = 'success') {
+            let existingMsg = document.getElementById('temp-message');
+            if (!existingMsg) {
+                existingMsg = document.createElement('div');
+                existingMsg.id = 'temp-message';
+                existingMsg.className = "fixed bottom-4 left-1/2 transform -translate-x-1/2 p-4 rounded-lg shadow-lg font-bold z-[100] transition duration-300 opacity-0 text-center";
+                document.body.appendChild(existingMsg);
+            }
+
+            existingMsg.textContent = message;
+            
+            if (type === 'success') {
+                existingMsg.className = existingMsg.className.replace(/bg-red-500|bg-red-100|text-white|text-red-700/g, '') + " bg-emerald-gold text-white";
+            } else if (type === 'error') {
+                 existingMsg.className = existingMsg.className.replace(/bg-emerald-gold|text-white/g, '') + " bg-red-100 text-red-700 border border-red-500";
+            }
+
+            // Mostrar
+            setTimeout(() => {
+                existingMsg.style.opacity = '1';
+                existingMsg.style.bottom = '1rem';
+            }, 50);
+
+            // Ocultar después de 5 segundos
+            setTimeout(() => {
+                existingMsg.style.opacity = '0';
+                existingMsg.style.bottom = '-4rem';
+            }, 5000);
+        }
+
+        /**
+         * Establece el método de pago seleccionado y actualiza la UI.
+         */
+        function selectPayment(method) {
+            appData.selectedPaymentMethod = method;
+            document.getElementById('error-message-2').classList.add('hidden');
+            
+            // Quitar clase 'selected' de todas las tarjetas
+            document.querySelectorAll('.payment-option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Añadir clase 'selected' a la tarjeta actual
+            document.querySelector(`.payment-option-card[data-payment="${method}"]`).classList.add('selected');
+        }
+
+        /**
+         * Renderiza el paso actual del checkout.
+         */
+        function renderCheckoutStep() {
+            // Ocultar todos los pasos e indicadores
+            document.querySelectorAll('.checkout-step').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
+
+            // Mostrar el paso actual y su indicador
+            document.getElementById(`step-${appData.checkoutStep}`).classList.add('active');
+            // Activar todos los indicadores hasta el paso actual
+            for (let i = 1; i <= appData.checkoutStep; i++) {
+                document.getElementById(`step-indicator-${i}`).classList.add('active');
+            }
+            
+            // Si es el paso 3, renderizar el resumen
+            if (appData.checkoutStep === 3) {
+                renderOrderSummary();
+            }
+            // Si es el paso 4, iniciar el pago simulado
+            if (appData.checkoutStep === 4) {
+                simulatePaymentAndSaveOrder();
+            }
+        }
+
+        /**
+         * Avanza o retrocede en los pasos del checkout.
+         */
+        function nextCheckoutStep(currentStep) {
+            document.getElementById(`error-message-${currentStep}`).classList.add('hidden');
+
+            if (currentStep === 1) {
+                // Validar datos de contacto
+                const name = document.getElementById('checkout-name').value.trim();
+                const email = document.getElementById('checkout-email').value.trim();
+                const phone = document.getElementById('checkout-phone').value.trim();
+                const address = document.getElementById('checkout-address').value.trim();
+                const city = document.getElementById('checkout-city').value.trim();
+
+                if (!name || !email || !phone || !address || !city || !email.includes('@')) {
+                    document.getElementById('error-message-1').textContent = "Por favor, complete todos los campos y asegure un email válido.";
+                    document.getElementById('error-message-1').classList.remove('hidden');
+                    return;
+                }
+
+                // Guardar datos temporalmente
+                appData.checkoutData = { name, email, phone, address, city };
+                appData.checkoutStep = 2; // Mover a selección de pago
+
+            } else if (currentStep === 2) {
+                // Validar selección de pago
+                if (!appData.selectedPaymentMethod) {
+                    document.getElementById('error-message-2').textContent = "Debes elegir un método de pago para continuar.";
+                    document.getElementById('error-message-2').classList.remove('hidden');
+                    return;
+                }
+                appData.checkoutStep = 3; // Mover a resumen
+                
+            } else if (currentStep === 3) {
+                appData.checkoutStep = 4; // Mover a simulación de pago
+            }
+            
+            renderCheckoutStep();
+        }
+
+        function prevCheckoutStep(currentStep) {
+            if (currentStep === 2) {
+                appData.checkoutStep = 1;
+            } else if (currentStep === 3) {
+                appData.checkoutStep = 2;
+            }
+            // Paso 4 no puede ir atrás (solo recargar)
+            
+            renderCheckoutStep();
+        }
+        
+        /**
+         * Rellena los datos en el Resumen de Pedido (Paso 3).
+         */
+        function renderOrderSummary() {
+            const data = appData.checkoutData;
+            const total = appData.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            // Detalles del usuario
+            document.getElementById('summary-user-details').innerHTML = `
+                <p><span class="font-semibold">Nombre:</span> ${data.name}</p>
+                <p><span class="font-semibold">Email:</span> ${data.email}</p>
+                <p><span class="font-semibold">Teléfono:</span> ${data.phone}</p>
+                <p><span class="font-semibold">Envío a:</span> ${data.address}, ${data.city}</p>
+            `;
+            
+            // Método de pago
+            document.getElementById('summary-payment-method').textContent = appData.selectedPaymentMethod || 'No Seleccionado';
+
+            // Ítems del pedido
+            document.getElementById('summary-items').innerHTML = appData.cart.map(item => `
+                <li class="flex justify-between items-center text-sm text-gray-800 border-b pb-1 border-gray-100">
+                    <span class="font-medium">${item.name} (x${item.quantity})</span>
+                    <span class="font-semibold text-emerald-gold">${formatCOP(item.price * item.quantity)}</span>
+                </li>
+            `).join('');
+
+            // Total
+            document.getElementById('summary-total').textContent = formatCOP(total);
+        }
+
+        /**
+         * Simula el pago y guarda la orden en Firestore.
+         */
+        function simulatePaymentAndSaveOrder() {
+            document.getElementById('payment-processing').classList.remove('hidden');
+            document.getElementById('payment-success').classList.add('hidden');
+
+            // Simular un retraso de procesamiento (3 segundos)
+            setTimeout(async () => {
+                
+                document.getElementById('payment-processing').classList.add('hidden');
+                
+                const db = window.getFirestore();
+                const userId = window.getUserId();
+                const total = appData.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const orderId = 'ORD-' + Date.now().toString().slice(-6);
+
+                const orderPayload = {
+                    orderId: orderId,
+                    appId: 'default-app-id', // Reemplazar con el valor real de __app_id si es necesario, aunque ya está cubierto por el path.
+                    user_id_auth: userId, // User ID de Firebase (puede ser anónimo)
+                    buyer_details: appData.checkoutData,
+                    payment_method: appData.selectedPaymentMethod, // GUARDAMOS EL MÉTODO
+                    items: appData.cart.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity
+                    })),
+                    total_amount: total,
+                    status: 'RECEIVED',
+                    timestamp: new Date().toISOString()
+                };
+
+                try {
+                    if (window.firebaseReady()) {
+                        // Guardar en la colección pública /artifacts/{appId}/public/data/orders
+                        const ordersColRef = window.collection(db, `artifacts/${appId}/public/data/orders`);
+                        const docRef = await window.addDoc(ordersColRef, orderPayload);
+                        
+                        // Mostrar mensaje de éxito con el ID del documento de Firestore (o el ID generado)
+                        document.getElementById('order-id-display').textContent = docRef.id;
+                        console.log("Order saved successfully with ID:", docRef.id);
+                    } else {
+                        // Si Firebase no está listo, mostrar un ID local
+                        document.getElementById('order-id-display').textContent = orderId + " (LOCAL)";
+                        console.warn("Firebase not ready. Order NOT saved to persistent storage in a real deployment without Firebase setup.");
+                    }
+
+                    // Actualizar la vista de éxito
+                    document.getElementById('success-email-display').textContent = appData.checkoutData.email;
+                    document.getElementById('payment-success').classList.remove('hidden');
+
+                    // Limpiar el carrito y cerrar el modal después del éxito
+                    appData.cart = [];
+                    appData.selectedPaymentMethod = null;
+                    renderCart(); 
+                    
+                } catch (e) {
+                    console.error("Error saving order:", e);
+                    // Manejar error en la UI (mantener el paso 3 y mostrar mensaje de error)
+                    document.getElementById('payment-success').innerHTML = `
+                        <p class="text-red-500 font-bold mb-4">Error al procesar la orden. Por favor, contacte soporte. ${e.message}</p>
+                    `;
+                    document.getElementById('payment-success').classList.remove('hidden');
+                }
+            }, 3000); // 3 segundos de simulación
+        }
+
+
+        // Inicialización al cargar la ventana
+        window.onload = function() {
+            renderProducts();
+            renderCart();
+            startCarousel();
+        };
+
+    </script>
+</body>
+</html>
